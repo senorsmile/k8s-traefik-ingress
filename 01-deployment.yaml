@@ -1,0 +1,53 @@
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  labels:
+    app: alpaca
+    env: prod
+    ver: "1"
+  name: alpaca-prod
+  namespace: default
+spec:
+  replicas: 4
+  selector:
+    matchLabels:
+      app: alpaca
+      env: prod
+      ver: "1"
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: alpaca
+        env: prod
+        ver: "1"
+    spec:
+      containers:
+      - image: gcr.io/kuar-demo/kuard-amd64:1
+        imagePullPolicy: IfNotPresent
+        name: alpaca-prod
+        ports:
+        - containerPort: 8080
+          protocol: TCP
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: 8080
+          periodSeconds: 2
+          initialDelaySeconds: 0
+          failureThreshold: 3
+          successThreshold: 1
+        #resources: {}
+        #terminationMessagePath: /dev/termination-log
+        #terminationMessagePolicy: File
+      restartPolicy: Always
+      dnsPolicy: ClusterFirst
+      schedulerName: default-scheduler
+      securityContext: {}
+      terminationGracePeriodSeconds: 30
+  #progressDeadlineSeconds: 600
